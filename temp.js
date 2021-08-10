@@ -1,54 +1,20 @@
-//const url = `https://api.openweathermap.org/data/2.5/weather?q=brussels&appid=f8298c7f16e3d8a240f6211d153bb76e&units=metric`;
-
-const apiKey = 'f8298c7f16e3d8a240f6211d153bb76e';
-const submitForm = document.getElementById('submit-form');
-
+/*SEARCH BY USING A CITY NAME (e.g. athens) OR A COMMA-SEPARATED CITY NAME ALONG WITH THE COUNTRY CODE (e.g. athens,gr)*/
 const form = document.querySelector('.top-banner form');
 const input = document.querySelector('.top-banner input');
 const msg = document.querySelector('.top-banner .msg');
 const list = document.querySelector('.ajax-section .cities');
-
-const listItems = list.querySelectorAll('.ajax-section .city');
-const listItemsArray = Array.from(listItems);
+/*SUBSCRIBE HERE FOR API KEY: https://home.openweathermap.org/users/sign_up*/
+const apiKey = '4d8fb5b93d4af21d66a2948710284366';
 
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     let inputVal = input.value;
-    console.log(inputVal);
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${inputVal}&appid=${apiKey}&units=metric`;
-    console.log(url);
 
-    fetch(url)
-        .then((response) => response.json())
-        .then((data) => {
-            const { main, name, sys, weather } = data;
-            const icon = `https://openweathermap.org/img/wn/${weather[0]['icon']}@2x.png`;
-            console.log(data);
-            const li = document.createElement('li');
-            li.classList.add('city');
-            const markup = `
-        <h2 class="city-name" data-name="${name},${sys.country}">
-        <span>${name}</span>
-        <sup>${sys.country}</sup>
-        </h2>
-        <div class="city-temp">${Math.round(main.temp)}<sup>°C</sup>
-        </div>
-        <figure>
-        <img class="city-icon" src=${icon} alt=${weather[0]['main']}>
-        <figcaption>${weather[0]['description']}</figcaption>
-        </figure>
-        `;
-            li.innerHTML = markup;
-            list.appendChild(li);
-            msg.textContent = '';
-            form.reset();
-            input.focus();
-        })
-        .catch(() => {
-            msg.textContent = 'Please search for a valid city 😩';
-        });
+    //check if there's already a city
+    const listItems = list.querySelectorAll('.ajax-section .city');
+    const listItemsArray = Array.from(listItems);
+
     if (listItemsArray.length > 0) {
-        //2
         const filteredArray = listItemsArray.filter((el) => {
             let content = '';
             //athens,gr
@@ -73,7 +39,6 @@ form.addEventListener('submit', (e) => {
             return content == inputVal.toLowerCase();
         });
 
-        //3
         if (filteredArray.length > 0) {
             msg.textContent = `You already know the weather for ${
                 filteredArray[0].querySelector('.city-name span').textContent
@@ -83,4 +48,39 @@ form.addEventListener('submit', (e) => {
             return;
         }
     }
+
+    //ajax here
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${inputVal}&appid=${apiKey}&units=metric`;
+
+    fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
+            const { main, name, sys, weather } = data;
+            const icon = `https://s3-us-west-2.amazonaws.com/s.cdpn.io/162656/${weather[0]['icon']}.svg`;
+
+            const li = document.createElement('li');
+            li.classList.add('city');
+            const markup = `
+        <h2 class="city-name" data-name="${name},${sys.country}">
+          <span>${name}</span>
+          <sup>${sys.country}</sup>
+        </h2>
+        <div class="city-temp">${Math.round(main.temp)}<sup>°C</sup></div>
+        <figure>
+          <img class="city-icon" src="${icon}" alt="${
+                weather[0]['description']
+            }">
+          <figcaption>${weather[0]['description']}</figcaption>
+        </figure>
+      `;
+            li.innerHTML = markup;
+            list.appendChild(li);
+        })
+        .catch(() => {
+            msg.textContent = 'Please search for a valid city 😩';
+        });
+
+    msg.textContent = '';
+    form.reset();
+    input.focus();
 });
